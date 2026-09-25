@@ -1,0 +1,1353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BuyWise Co. - Quick-Commerce Price Comparison & Fair Price Benchmark</title>
+  <meta name="description" content="Compare live prices across Blinkit, Zepto, Swiggy Instamart, BigBasket BB Now, and Flipkart Minutes with un-manipulated Fair Price benchmarks." />
+  <meta name="theme-color" content="#10b981" />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'Inter', 'system-ui', 'sans-serif'],
+          },
+          colors: {
+            emerald: {
+              50: '#ecfdf5',
+              100: '#d1fae5',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857',
+              900: '#064e3b',
+              950: '#022c22',
+            },
+          },
+        },
+      },
+    };
+  </script>
+
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- React 18 & ReactDOM & Babel Standalone -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', Inter, system-ui, -apple-system, sans-serif;
+    }
+    .scrollbar-none::-webkit-scrollbar {
+      display: none;
+    }
+    .scrollbar-none {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 font-sans text-slate-800 antialiased min-h-screen flex flex-col">
+
+  <!-- React Root Container -->
+  <div id="root"></div>
+
+  <!-- Load Seed Database & React App Script -->
+  <script type="text/babel">
+    const { useState, useMemo, useEffect } = React;
+
+    // -------------------------------------------------------------------
+    // 1. EMBEDDED 50+ AUTHENTIC FMCG PRODUCTS SEED DATABASE
+    // -------------------------------------------------------------------
+    const PRODUCTS_DATA = [
+      {
+        "id": "dai-1",
+        "name": "Amul Taaza Homogenised Toned Milk",
+        "brand": "Amul",
+        "category": "Dairy & Bread",
+        "size": "500 ml",
+        "unitPrice": "₹68/L",
+        "mrp": 34,
+        "fairPrice": 33,
+        "fairPriceNote": "Baseline fair retail rate based on Amul cooperative MSP",
+        "image": "https://images.unsplash.com/photo-1550583724-b2692b85b150?auto=format&fit=crop&w=600&q=80",
+        "prices": { "blinkit": 34, "zepto": 33, "instamart": 34, "bb": 34, "flipkart": 33 },
+        "stock": { "blinkit": true, "zepto": true, "instamart": true, "bb": true, "flipkart": true },
+        "delivery": { "blinkit": 8, "zepto": 7, "instamart": 12, "bb": 16, "flipkart": 10 }
+      },
+      {
+        "id": "dai-2",
+        "name": "Amul Gold Full Cream Fresh Milk",
+        "brand": "Amul",
+        "category": "Dairy & Bread",
+        "size": "500 ml",
+        "unitPrice": "₹70/L",
+        "mrp": 36,
+        "fairPrice": 35,
+        "fairPriceNote": "Standard 6% fat cream benchmark",
+        "image": "https://images.unsplash.com/photo-1563636619-e9143da7973b?auto=format&fit=crop&w=600&q=80",
+        "prices": { "blinkit": 36, "zepto": 35, "instamart": 36, "bb": 35, "flipkart": 35 },
+        "stock": { "blinkit": true, "zepto": true, "instamart": true, "bb": true, "flipkart": true },
+        "delivery": { "blinkit": 9, "zepto": 8, "instamart": 11, "bb": 15, "flipkart": 10 }
+      },
+      {
+        "id": "dai-3",
+        "name": "Nandini Fresh Toned Milk",
+        "brand": "Nandini",
+        "category": "Dairy & Bread",
+        "size": "1 L",
+        "unitPrice": "₹42/L",
+        "mrp": 44,
+        "fairPrice": 42,
+        "fairPriceNote": "Subsidized dairy federation tariff rate",
+        "image": "https://images.unsplash.com/photo-1528750997573-59b89d56f4f7?auto=format&fit=crop&w=600&q=80",
+        "prices": { "blinkit": 42, "zepto": 42, "instamart": 43, "bb": 41, "flipkart": 42 },
+        "stock": { "blinkit": true, "zepto": true, "instamart": true, "bb": true, "flipkart": false },
+        "delivery": { "blinkit": 10, "zepto": 9, "instamart": 14, "bb": 18, "flipkart": 12 }
+      },
+      {
+        "id": "dai-4",
+        "name": "Amul Pasteurised Salted Butter",
+        "brand": "Amul",
+        "category": "Dairy & Bread",
+        "size": "500 g",
+        "unitPrice": "₹540/kg",
+        "mrp": 285,
+        "fairPrice": 272,
+        "fairPriceNote": "Cold-chain distribution markup parity",
+        "image": "https://images.unsplash.com/photo-1589985270826-4b7bb135bc9d?auto=format&fit=crop&w=600&q=80",
+        "prices": { "blinkit": 275, "zepto": 268, "instamart": 272, "bb": 265, "flipkart": 270 },
+        "stock": { "blinkit": true, "zepto": true, "instamart": true, "bb": true, "flipkart": true },
+        "delivery": { "blinkit": 8, "zepto": 7, "instamart": 10, "bb": 14, "flipkart": 9 }
+      },
+      {
+        "id": "dai-5",
+        "name": "Britannia 100% Whole Wheat Bread",
+        "brand": "Britannia",
+        "category": "Dairy & Bread",
+        "size": "400 g",
+        "unitPrice": "₹125/kg",
+        "mrp": 55,
+        "fairPrice": 50,
+        "fairPriceNote": "Flour cost and freshness window benchmark",
+        "image": "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=600&q=80",
+        "prices": { "blinkit": 50, "zepto": 48, "instamart": 49, "bb": 48, "flipkart": 49 },
+        "stock": { "blinkit": true, "zepto": true, "instamart": true, "bb": true, "flipkart": true },
+        "delivery": { "blinkit": 8, "zepto": 7, "instamart": 11, "bb": 15, "flipkart": 9 }
+      },
+      {
+        "id": "dai-6",
+        "name": "Epigamia Natural Greek Yogurt",
+        "brand": "Epigamia",
+        "category": "Dairy & Bread",
+        "size": "90 g",
+        "unitPrice": "₹500/kg",
+        "mrp": 50,
+        "fairPrice": 45,
+        "fairPriceNote": "Probiotic protein density standard",
+        "image": "https://images.unsplash.com/photo-1488477181946-6428a0291777?auto=format&fit=crop&w=600&q=80",
+        "prices": { "blinkit": 45, "zepto": 42, "instamart": 44, "bb": 43, "flipkart": 44 },
+        "stock": { "blinkit": true, "zepto": true, "instamart": true, "bb": true, "flipkart": true },
+        "delivery": { "blinkit": 8, "zepto": 7, "instamart": 10, "bb": 14, "flipkart": 9 }
+      },
+      {
+        "id": "dai-7",
+        "name": "Mother Dairy Classic Paneer",
+        "brand": "Mother Dairy",
+        "category": "Dairy & Bread",
+        "size": "200 g",
+        "unitPrice": "₹450/kg",
+        "mrp": 95,
+        "fairPrice": 90,
+        "fairPriceNote": "Fresh cottage cheese processing baseline",
+        "image": "https://images.unsplash.com/photo-1631452180519-c014fe946bc7?auto=format&fit=crop&w=600&q=80",
+        "prices": { "blinkit": 92, "zepto": 89, "instamart": 90, "bb": 88, "flipkart": 90 },
+        "stock": { "blinkit": true, "zepto": true, "instamart": true, "bb": true, "flipkart": true },
+        "delivery": { "blinkit": 9, "zepto": 8, "instamart": 12, "bb": 16, "flipkart": 11 }
+      },
+      {
+        "id": "dai-8",
+        "name": "Country Delight Desi Cow Ghee",
+        "brand": "Country Delight",
+        "category": "Dairy & Bread",
+        "size": "500 ml",
+        "unitPrice": "₹1200/L",
+        "mrp": 650,
+        "fairPrice": 599,
+        "fairPriceNote": "Traditional bilona ghee churning market rate",
+        "image": "https://images.unsplash.com/photo-1594916898864-44d47d06e3e5?auto=format&fit=crop&w=600&q=80",
+        "prices": { "blinkit": 610, "zepto": 590, "instamart": 605, "bb": 585, "flipkart": 595 },
+        "stock": { "blinkit": true, "zepto": true, "instamart": true, "bb": false, "flipkart": true },
+        "delivery": { "blinkit": 10, "zepto": 8, "instamart": 14, "bb": 18, "flipkart": 11 }
+      },
+      {
+        "id": "veg-1",
+        "name": "Farm Fresh Cleaned Potatoes",
+        "brand": "Farm Fresh",
+        "category": "Fresh Produce",
+        "size": "1 kg",
+        "unitPrice": "₹30/kg",
+        "mrp": 40,
+        "fairPrice": 30,
+        "fairPriceNote": "Agri mandi wholesale modal price + transit margin",
+        "image": "https://images.unsplash.com/photo-1518977676601-b53f82aba655?auto=format&fit=crop&w=600&q=80",
+        "prices": { "blinkit": 32, "zepto": 30, "instamart": 34, "bb": 28, "flipkart": 30 },
+        "stock": { "blinkit": true, "zepto": true, "instamart": true, "bb": true, "flipkart": true },
+        "delivery": { "blinkit": 8, "zepto": 7, "instamart": 11, "bb": 15, "flipkart": 9 }
+      },
+      {
+        "id": "veg-2",
+        "name": "Fresh Hybrid Red Onions",
+        "brand": "Farm Fresh",
+        "category": "Fresh Produce",
+        "size": "1 kg",
+        "unitPrice": "₹35/kg",
+        "mrp": 45,
+        "fairPrice": 35,
+        "fairPriceNote": "Lasalgaon wholesale onion index benchmark",
+        "image": "https://images.unsplash.com/photo-1508747703725-719777637510?auto=format&fit=crop&w=600&q=80",
+        "prices": { "blinkit": 38, "zepto": 36, "instamart": 38, "bb": 33, "flipkart": 35 },
+        "stock": { "blinkit": true, "zepto": true, "instamart": true, "bb": true, "flipkart": true },
+        "delivery": { "blinkit": 8, "zepto": 7, "instamart": 12, "bb": 16, "flipkart": 10 }
+      },
+      {
+        "id": "veg-3",
+        "name": "Vine Ripe Local Tomatoes",
+        "brand": "Farm Fresh",
+        "category": "Fresh Produce",
+        "size": "1 kg",
+        "unitPrice": "₹28/kg",
+        "mrp": 40,
+        "fairPrice": 28,
+        "fairPriceNote": "Local farm harvest seasonal index",
+        "image": "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?auto=format&fit=crop&w=600&q=80",
+        "prices": { "blinkit": 30, "zepto": 27, "instamart": 32, "bb": 26, "flipkart": 28 },
+        "stock": { "blinkit": true, "zepto": true, "instamart": true, "bb": true, "flipkart": true },
+        "delivery": { "blinkit": 8, "zepto": 7, "instamart": 11, "bb": 15, "flipkart": 10 }
+      },
+      {
+        "id": "veg-4",
+        "name": "Robusta Ripe Bananas",
+        "brand": "Farm Fresh",
+        "category": "Fresh Produce",
+        "size": "1 kg (approx 6-8 pcs)",
+        "unitPrice": "₹45/kg",
+        "mrp": 60,
+        "fairPrice": 46,
+        "fairPriceNote": "Naturally ripened fruit commission metric",
+        "image": "https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?auto=format&fit=crop&w=600&q=80",
+        "prices": { "blinkit": 48, "zepto": 45, "instamart": 46, "bb": 42, "flipkart": 44 },
+        "stock": { "blinkit": true, "zepto": true, "instamart": true, "bb": true, "flipkart": true },
+        "delivery": { "blinkit": 8, "zepto": 7, "instamart": 11, "bb": 15, "flipkart": 9 }
+      },
+      {
+        "id": "veg-5",
+        "name": "Fresh Shimla Crisp Red Apples",
+        "brand": "Farm Fresh",
+        "category": "Fresh Produce",
+        "size": "1 kg (approx 4 pcs)",
+        "unitPrice": "₹160/kg",
+        "mrp": 210,
+        "fairPrice": 165,
+        "fairPriceNote": "Himachal apple yard grading standard",
+        "image": "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?auto=format&fit=crop&w=600&q=80",
+        "prices": { "blinkit": 175, "zepto": 160, "instamart": 170, "bb": 158, "flipkart": 165 },
+        "stock": { "blinkit": true, "zepto": true, "instamart": true, "bb": true, "flipkart": true },
+        "delivery": { "blinkit": 9, "zepto": 8, "instamart": 13, "bb": 17, "flipkart": 11 }
+      },
+      {
+        "id": "veg-6",
+        "name": "Fresh Hydro-Washed Coriander Leaves",
+        "brand": "Farm Fresh",
+        "category": "Fresh Produce",
+        "size": "100 g",
+        "unitPrice": "₹150/kg",
+        "mrp": 25,
+        "fairPrice": 16,
+        "fairPriceNote": "Mandi rate ₹10-12/100g; quick-commerce retail markup exceeds 40%",
+        "image": "https://images.unsplash.com/photo-1599940824399-b87987ceb72a?auto=format&fit=crop&w=600&q=80",
+        "prices": { "blinkit": 22, "zepto": 20, "instamart": 24, "bb": 18, "flipkart": 20 },
+        "stock": { "blinkit": true, "zepto": true, "instamart": true, "bb": true, "flipkart": true },
+        "delivery": { "blinkit": 8, "zepto": 7, "instamart": 10, "bb": 14, "flipkart": 9 }
+      },
+      {
+        "id": "veg-7",
+        "name": "Fresh Sweet Tender Green Coconut",
+        "brand": "Farm Fresh",
+        "category": "Fresh Produce",
+        "size": "1 Unit (approx 250ml)",
+        "unitPrice": "₹60/unit",
+        "mrp": 75,
+        "fairPrice": 58,
+        "fairPriceNote": "Coastal tender coconut farm-gate index",
+        "image": "https://images.unsplash.com/photo-1544376798-89aa6b82c6cd?auto=format&fit=crop&w=600&q=80",
+        "prices": { "blinkit": 65, "zepto": 58, "instamart": 62, "bb": 55, "flipkart": 60 },
+        "stock": { "blinkit": true, "zepto": true, "instamart": true, "bb": true, "flipkart": true },
+        "delivery": { "blinkit": 8, "zepto": 7, "instamart": 10, "bb": 14, "flipkart": 9 }
+      },
+      {
+        "id": "bev-1",
+        "name": "Nescafé Classic Instant Coffee Glass Jar",
+        "brand": "Nescafé",
+        "category": "Snacks & Drinks",
+        "size": "100 g",
+        "unitPrice": "₹3200/kg",
+        "mrp": 360,
+        "fairPrice": 320,
+        "fairPriceNote": "Aggregated brand promotional benchmark",
+        "image": "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=600&q=80",
+        "prices": { "blinkit": 320, "zepto": 315, "instamart": 318, "bb": 310, "flipkart": 312 },
+        "stock": { "blinkit": true, "zepto": true, "instamart": true, "bb": true, "flipkart": true },
+        "delivery": { "blinkit": 8, "zepto": 7, "instamart": 12, "bb": 16, "flipkart": 10 }
+      },
+      {
+        "id": "bev-2",
+        "name": "Bru Instant Coffee Chicory Pouch",
+        "brand": "Bru",
+        "category": "Snacks & Drinks",
+        "size": "200 g",
+        "unitPrice": "₹1900/kg",
+        "mrp": 410,
+        "fairPrice": 378,
+        "fairPriceNote": "Standard plantation chicory blend index",
+        "image": "https://images.unsplash.com/photo-1587734195503-904fca47e0e9?auto=format&fit=crop&w=600&q=80",
+        "prices": { "blinkit": 380, "zepto": 372, "instamart": 375, "bb": 370, "flipkart": 372 },
+        "stock": { "blinkit": true, "zepto": true, "instamart": true, "bb": true, "flipkart": true },
+        "delivery": { "blinkit": 9, "zepto": 8, "instamart": 13, "bb": 18, "flipkart": 11 }
+      },
+      {
+        "id": "bev-3",
+        "name": "Coca-Cola Original Taste Chilled Bottle",
+        "brand": "Coca-Cola",
+        "category": "Snacks & Drinks",
+        "size": "750 ml",
+        "unitPrice": "₹60/L",
+        "mrp": 45,
+        "fairPrice": 44,
+        "fairPriceNote": "Fixed statutory maximum retail cap benchmark",
+        "image": "https://images.unsplash.com/photo-1554866585-cd94860890b7?auto=format&fit=crop&w=600&q=80",
+        "prices": { "blinkit": 45, "zepto": 43, "instamart": 44, "bb": 42, "flipkart": 43 },
+        "stock": { "blinkit": true, "zepto": true, "instamart": true, "bb": true, "flipkart": true },
+        "delivery": { "blinkit": 8, "zepto": 7, "instamart": 10, "bb": 14, "flipkart": 9 }
+      },
+      {
+        "id": "bev-4",
+        "name": "Coca-Cola Zero Sugar Sparkling Can",
+        "brand": "Coca-Cola",
+        "category": "Snacks & Drinks",
+        "size": "300 ml",
+        "unitPrice": "₹130/L",
+        "mrp": 40,
+        "fairPrice": 39,
+        "fairPriceNote": "Beverage can standard distributor invoice rate",
+        "image": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&w=600&q=80",
+        "prices": { "blinkit": 40, "zepto": 38, "instamart": 39, "bb": 38, "flipkart": 38 },
+        "stock": { "blinkit": true, "zepto": true, "instamart": true, "bb": true, "flipkart": true },
+        "delivery": { "blinkit": 8, "zepto": 7, "instamart": 11, "bb": 15, "flipkart": 9 }
+      },
+      {
+        "id": "bev-5",
+        "name": "Tata Tea Gold Leaf Tea Pouch",
+        "brand": "Tata Tea",
+        "category": "Snacks & Drinks",
+        "size": "500 g",
+        "unitPrice": "₹620/kg",
+        "mrp": 340,
+        "fairPrice": 305,
+        "fairPriceNote": "Assam tea auction index + packaging standard",
+        "image": "https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&w=600&q=80",
+        "prices": { "blinkit": 310, "zepto": 302, "instamart": 308, "bb": 298, "flipkart": 305 },
+        "stock": { "blinkit": true, "zepto": true, "instamart": true, "bb": true, "flipkart": true },
+        "delivery": { "blinkit": 9, "zepto": 8, "instamart": 12, "bb": 16, "flipkart": 11 }
+      },
+      {
+        "id": "bev-6",
+        "name": "Red Bull Energy Drink",
+        "brand": "Red Bull",
+        "category": "Snacks & Drinks",
+        "size": "250 ml",
+        "unitPrice": "₹480/L",
+        "mrp": 125,
+        "fairPrice": 118,
+        "fairPriceNote": "Cold logistics parity baseline",
+        "image": "https://images.unsplash.com/photo-1551024709-8f23befc6f87?auto=format&fit=crop&w=600&q=80",
+        "prices": { "blinkit": 120, "zepto": 115, "instamart": 118, "bb": 119, "flipkart": 116 },
+        "stock": { "blinkit": true, "zepto": true, "instamart": true, "bb": true, "flipkart": true },
+        "delivery": { "blinkit": 8, "zepto": 7, "instamart": 10, "bb": 14, "flipkart": 9 }
+      },
+      {
+        "id": "snk-1",
+        "name": "Lay's India's Magic Masala Chips",
+        "brand": "Lay's",
+        "category": "Snacks & Drinks",
+        "size": "50 g",
+        "unitPrice": "₹400/kg",
+        "mrp": 20,
+        "fairPrice": 20,
+        "fairPriceNote": "FMCG fixed unit price packaging standard",
+        "image": "https://images.unsplash.com/photo-1566478989037-eec170784d0b?auto=format&fit=crop&w=600&q=80",
+        "prices": { "blinkit": 20, "zepto": 19, "instamart": 20, "bb": 19, "flipkart": 19 },
+        "stock": { "blinkit": true, "zepto": true, "instamart": true, "bb": true, "flipkart": true },
+        "delivery": { "blinkit": 8, "zepto": 7, "instamart": 10, "bb": 14, "flipkart": 9 }
+      },
+      {
+        "id": "snk-2",
+        "name": "Kurkure Masala Munch Crispy Snack",
+        "brand": "Kurkure",
+        "category": "Snacks & Drinks",
+        "size": "82 g",
+        "unitPrice": "₹243/kg",
+        "mrp": 20,
+        "fairPrice": 20,
+        "fairPriceNote": "Standard retail pricing standard",
+        "image": "https://images.unsplash.com/photo-1621996346565-e3d5d6281699?auto=format&fit=crop&w=600&q=80",
+        "prices": { "blinkit": 20, "zepto": 19, "instamart": 19, "bb": 19, "flipkart": 19 },
+        "stock": { "blinkit": true, "zepto": true, "instamart": true, "bb": true, "flipkart": true },
+        "delivery": { "blinkit": 8, "zepto": 7, "instamart": 10, "bb": 14, "flipkart": 9 }
+      },
+      {
+        "id": "snk-3",
+        "name": "Haldiram's Nagpur Aloo Bhujia",
+        "brand": "Haldiram's",
+        "category": "Snacks & Drinks",
+        "size": "200 g",
+        "unitPrice": "₹260/kg",
+        "mrp": 60,
+        "fairPrice": 53,
+        "fairPriceNote": "Traditional namkeen volume distributor margin",
+        "image": "https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=600&q=80",
+        "prices": { "blinkit": 55, "zepto": 52, "instamart": 54, "bb": 50, "flipkart": 52 },
+        "stock": { "blinkit": true, "zepto": true, "instamart": true, "bb": true, "flipkart": true },
+        "delivery": { "blinkit": 9, "zepto": 8, "instamart": 11, "bb": 16, "flipkart": 10 }
+      },
+      {
+        "id": "sta-1",
+        "name": "Aashirvaad Shudh Chakki Whole Wheat Atta",
+        "brand": "Aashirvaad",
+        "category": "Cooking Essentials",
+        "size": "5 kg",
+        "unitPrice": "₹52/kg",
+        "mrp": 295,
+        "fairPrice": 258,
+        "fairPriceNote": "FCI central wheat procurement MSP parity",
+        "image": "https://images.unsplash.com/photo-1574316071802-0d684efa7cd5?auto=format&fit=crop&w=600&q=80",
+        "prices": { "blinkit": 255, "zepto": 258, "instamart": 260, "bb": 252, "flipkart": 256 },
+        "stock": { "blinkit": true, "zepto": true, "instamart": true, "bb": true, "flipkart": true },
+        "delivery": { "blinkit": 9, "zepto": 8, "instamart": 13, "bb": 16, "flipkart": 11 }
+      },
+      {
+        "id": "sta-2",
+        "name": "Fortune Sunlite Refined Sunflower Oil Pouch",
+        "brand": "Fortune",
+        "category": "Cooking Essentials",
+        "size": "1 L",
+        "unitPrice": "₹135/L",
+        "mrp": 165,
+        "fairPrice": 136,
+        "fairPriceNote": "Imported crude edible oil tariff benchmark",
+        "image": "https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?auto=format&fit=crop&w=600&q=80",
+        "prices": { "blinkit": 138, "zepto": 135, "instamart": 136, "bb": 132, "flipkart": 134 },
+        "stock": { "blinkit": true, "zepto": true, "instamart": true, "bb": true, "flipkart": true },
+        "delivery": { "blinkit": 9, "zepto": 8, "instamart": 12, "bb": 18, "flipkart": 10 }
+      },
+      {
+        "id": "sta-3",
+        "name": "Madhur Pure & Hygienic Sulphur Free Sugar",
+        "brand": "Madhur",
+        "category": "Cooking Essentials",
+        "size": "1 kg",
+        "unitPrice": "₹60/kg",
+        "mrp": 68,
+        "fairPrice": 59,
+        "fairPriceNote": "Cane crushing factory gate index",
+        "image": "https://images.unsplash.com/photo-1581441363689-1f3c3c414635?auto=format&fit=crop&w=600&q=80",
+        "prices": { "blinkit": 62, "zepto": 59, "instamart": 60, "bb": 58, "flipkart": 60 },
+        "stock": { "blinkit": true, "zepto": true, "instamart": true, "bb": true, "flipkart": true },
+        "delivery": { "blinkit": 8, "zepto": 7, "instamart": 11, "bb": 15, "flipkart": 9 }
+      },
+      {
+        "id": "sta-4",
+        "name": "Tata Salt Vacuum Evaporated Iodised Salt",
+        "brand": "Tata",
+        "category": "Cooking Essentials",
+        "size": "1 kg",
+        "unitPrice": "₹28/kg",
+        "mrp": 28,
+        "fairPrice": 27,
+        "fairPriceNote": "Essential commodities national ceiling rate",
+        "image": "https://images.unsplash.com/photo-1518110925495-5fe2fda0442c?auto=format&fit=crop&w=600&q=80",
+        "prices": { "blinkit": 28, "zepto": 27, "instamart": 28, "bb": 26, "flipkart": 27 },
+        "stock": { "blinkit": true, "zepto": true, "instamart": true, "bb": true, "flipkart": true },
+        "delivery": { "blinkit": 8, "zepto": 7, "instamart": 10, "bb": 14, "flipkart": 9 }
+      },
+      {
+        "id": "sta-5",
+        "name": "Daawat Rozana Gold Basmati Rice",
+        "brand": "Daawat",
+        "category": "Cooking Essentials",
+        "size": "5 kg",
+        "unitPrice": "₹84/kg",
+        "mrp": 495,
+        "fairPrice": 420,
+        "fairPriceNote": "Traditional aged paddy mill benchmark",
+        "image": "https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=600&q=80",
+        "prices": { "blinkit": 425, "zepto": 418, "instamart": 420, "bb": 410, "flipkart": 415 },
+        "stock": { "blinkit": true, "zepto": true, "instamart": true, "bb": true, "flipkart": true },
+        "delivery": { "blinkit": 10, "zepto": 9, "instamart": 14, "bb": 18, "flipkart": 12 }
+      },
+      {
+        "id": "sta-6",
+        "name": "Tata Sampann Unpolished Toor Dal",
+        "brand": "Tata Sampann",
+        "category": "Cooking Essentials",
+        "size": "1 kg",
+        "unitPrice": "₹175/kg",
+        "mrp": 210,
+        "fairPrice": 176,
+        "fairPriceNote": "Pulses buffer stock wholesale rate",
+        "image": "https://images.unsplash.com/photo-1585994192701-f166166ef0d8?auto=format&fit=crop&w=600&q=80",
+        "prices": { "blinkit": 180, "zepto": 174, "instamart": 178, "bb": 170, "flipkart": 175 },
+        "stock": { "blinkit": true, "zepto": true, "instamart": true, "bb": true, "flipkart": true },
+        "delivery": { "blinkit": 9, "zepto": 8, "instamart": 12, "bb": 16, "flipkart": 10 }
+      },
+      {
+        "id": "ins-1",
+        "name": "Maggi 2-Minute Masala Noodles Pack of 8",
+        "brand": "Maggi",
+        "category": "Instant Food",
+        "size": "560 g",
+        "unitPrice": "₹200/kg",
+        "mrp": 120,
+        "fairPrice": 110,
+        "fairPriceNote": "Nestlé standard multipack distributor tier",
+        "image": "https://images.unsplash.com/photo-1612927601601-6638404737ce?auto=format&fit=crop&w=600&q=80",
+        "prices": { "blinkit": 112, "zepto": 108, "instamart": 110, "bb": 106, "flipkart": 109 },
+        "stock": { "blinkit": true, "zepto": true, "instamart": true, "bb": true, "flipkart": true },
+        "delivery": { "blinkit": 8, "zepto": 7, "instamart": 10, "bb": 14, "flipkart": 9 }
+      },
+      {
+        "id": "ins-2",
+        "name": "Maggi 2-Minute Masala Noodles Pack of 4",
+        "brand": "Maggi",
+        "category": "Instant Food",
+        "size": "280 g",
+        "unitPrice": "₹200/kg",
+        "mrp": 60,
+        "fairPrice": 55,
+        "fairPriceNote": "Standard 4-cake pack consumer benchmark",
+        "image": "https://images.unsplash.com/photo-1612927601601-6638404737ce?auto=format&fit=crop&w=600&q=80",
+        "prices": { "blinkit": 56, "zepto": 54, "instamart": 55, "bb": 54, "flipkart": 55 },
+        "stock": { "blinkit": true, "zepto": true, "instamart": true, "bb": true, "flipkart": true },
+        "delivery": { "blinkit": 8, "zepto": 7, "instamart": 10, "bb": 14, "flipkart": 9 }
+      },
+      {
+        "id": "ins-3",
+        "name": "Sunfeast Yippee Magic Masala Noodles",
+        "brand": "Yippee",
+        "category": "Instant Food",
+        "size": "240 g",
+        "unitPrice": "₹190/kg",
+        "mrp": 50,
+        "fairPrice": 46,
+        "fairPriceNote": "Round block noodle processing standard",
+        "image": "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=600&q=80",
+        "prices": { "blinkit": 48, "zepto": 45, "instamart": 47, "bb": 44, "flipkart": 46 },
+        "stock": { "blinkit": true, "zepto": true, "instamart": true, "bb": true, "flipkart": true },
+        "delivery": { "blinkit": 8, "zepto": 7, "instamart": 11, "bb": 15, "flipkart": 10 }
+      },
+      {
+        "id": "ins-4",
+        "name": "Kellogg's Real Almond & Honey Muesli",
+        "brand": "Kellogg's",
+        "category": "Instant Food",
+        "size": "500 g",
+        "unitPrice": "₹690/kg",
+        "mrp": 395,
+        "fairPrice": 348,
+        "fairPriceNote": "Multigrain and nut blend imported packaging metric",
+        "image": "https://images.unsplash.com/photo-1517456793572-1d8efd6dc135?auto=format&fit=crop&w=600&q=80",
+        "prices": { "blinkit": 355, "zepto": 345, "instamart": 350, "bb": 340, "flipkart": 348 },
+        "stock": { "blinkit": true, "zepto": true, "instamart": true, "bb": true, "flipkart": true },
+        "delivery": { "blinkit": 9, "zepto": 8, "instamart": 12, "bb": 16, "flipkart": 11 }
+      },
+      {
+        "id": "hou-1",
+        "name": "Surf Excel Matic Top Load Liquid Detergent",
+        "brand": "Surf Excel",
+        "category": "Household Care",
+        "size": "1 L",
+        "unitPrice": "₹200/L",
+        "mrp": 230,
+        "fairPrice": 200,
+        "fairPriceNote": "Concentrated liquid surfactant standard",
+        "image": "https://images.unsplash.com/photo-1585421514738-01798e348b17?auto=format&fit=crop&w=600&q=80",
+        "prices": { "blinkit": 205, "zepto": 198, "instamart": 200, "bb": 195, "flipkart": 197 },
+        "stock": { "blinkit": true, "zepto": true, "instamart": true, "bb": true, "flipkart": true },
+        "delivery": { "blinkit": 9, "zepto": 8, "instamart": 13, "bb": 17, "flipkart": 11 }
+      },
+      {
+        "id": "hou-2",
+        "name": "Vim Lemon Dishwash Liquid Gel",
+        "brand": "Vim",
+        "category": "Household Care",
+        "size": "750 ml",
+        "unitPrice": "₹195/L",
+        "mrp": 170,
+        "fairPrice": 146,
+        "fairPriceNote": "Degreasing active formulation retail benchmark",
+        "image": "https://images.unsplash.com/photo-1584813539806-2538b8d9b8c6?auto=format&fit=crop&w=600&q=80",
+        "prices": { "blinkit": 152, "zepto": 145, "instamart": 148, "bb": 142, "flipkart": 144 },
+        "stock": { "blinkit": true, "zepto": true, "instamart": true, "bb": true, "flipkart": true },
+        "delivery": { "blinkit": 8, "zepto": 7, "instamart": 11, "bb": 16, "flipkart": 10 }
+      },
+      {
+        "id": "hou-3",
+        "name": "Harpic Power Plus 10X Toilet Cleaner",
+        "brand": "Harpic",
+        "category": "Household Care",
+        "size": "1 L",
+        "unitPrice": "₹190/L",
+        "mrp": 215,
+        "fairPrice": 192,
+        "fairPriceNote": "Acidic disinfectant bottle production standard",
+        "image": "https://images.unsplash.com/photo-1563453392212-326f5e854473?auto=format&fit=crop&w=600&q=80",
+        "prices": { "blinkit": 198, "zepto": 190, "instamart": 195, "bb": 188, "flipkart": 192 },
+        "stock": { "blinkit": true, "zepto": true, "instamart": true, "bb": true, "flipkart": true },
+        "delivery": { "blinkit": 8, "zepto": 7, "instamart": 11, "bb": 15, "flipkart": 10 }
+      },
+      {
+        "id": "per-1",
+        "name": "Dove Cream Beauty Bathing Soap Bar",
+        "brand": "Dove",
+        "category": "Household Care",
+        "size": "75 g",
+        "unitPrice": "₹660/kg",
+        "mrp": 65,
+        "fairPrice": 52,
+        "fairPriceNote": "Moisturizing syndet bar standard retail index",
+        "image": "https://images.unsplash.com/photo-1607006314187-8df7d9d20c57?auto=format&fit=crop&w=600&q=80",
+        "prices": { "blinkit": 52, "zepto": 50, "instamart": 52, "bb": 49, "flipkart": 48 },
+        "stock": { "blinkit": true, "zepto": true, "instamart": true, "bb": true, "flipkart": true },
+        "delivery": { "blinkit": 9, "zepto": 8, "instamart": 12, "bb": 16, "flipkart": 10 }
+      },
+      {
+        "id": "per-2",
+        "name": "Dettol Original Liquid Handwash Refill",
+        "brand": "Dettol",
+        "category": "Household Care",
+        "size": "675 ml",
+        "unitPrice": "₹180/L",
+        "mrp": 145,
+        "fairPrice": 120,
+        "fairPriceNote": "Antiseptic formulation economy refill benchmark",
+        "image": "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=600&q=80",
+        "prices": { "blinkit": 122, "zepto": 118, "instamart": 120, "bb": 115, "flipkart": 116 },
+        "stock": { "blinkit": true, "zepto": true, "instamart": true, "bb": true, "flipkart": true },
+        "delivery": { "blinkit": 9, "zepto": 7, "instamart": 11, "bb": 15, "flipkart": 10 }
+      },
+      {
+        "id": "per-3",
+        "name": "Colgate Strong Teeth Anticavity Toothpaste",
+        "brand": "Colgate",
+        "category": "Household Care",
+        "size": "200 g",
+        "unitPrice": "₹570/kg",
+        "mrp": 135,
+        "fairPrice": 115,
+        "fairPriceNote": "Calcium fluoride dental standard pricing metric",
+        "image": "https://images.unsplash.com/photo-1559591937-e1032b498f39?auto=format&fit=crop&w=600&q=80",
+        "prices": { "blinkit": 118, "zepto": 112, "instamart": 115, "bb": 110, "flipkart": 114 },
+        "stock": { "blinkit": true, "zepto": true, "instamart": true, "bb": true, "flipkart": true },
+        "delivery": { "blinkit": 8, "zepto": 7, "instamart": 10, "bb": 15, "flipkart": 9 }
+      }
+    ];
+
+    const CITIES = [
+      { name: 'Bengaluru', defaultPin: '560038' },
+      { name: 'Mumbai', defaultPin: '400050' },
+      { name: 'Delhi NCR', defaultPin: '110001' },
+      { name: 'Hyderabad', defaultPin: '500081' },
+      { name: 'Chennai', defaultPin: '600001' },
+      { name: 'Kolkata', defaultPin: '700001' },
+      { name: 'Pune', defaultPin: '411001' }
+    ];
+
+    const CATEGORIES = [
+      { id: 'all', label: 'All Products' },
+      { id: 'Dairy & Bread', label: 'Dairy & Bread' },
+      { id: 'Fresh Produce', label: 'Fresh Produce' },
+      { id: 'Snacks & Drinks', label: 'Snacks & Drinks' },
+      { id: 'Cooking Essentials', label: 'Cooking Essentials' },
+      { id: 'Household Care', label: 'Household Care' },
+      { id: 'Instant Food', label: 'Instant Food' }
+    ];
+
+    const PLATFORMS = [
+      { key: 'blinkit', name: 'Blinkit', color: 'bg-yellow-400 text-slate-950 border-yellow-400' },
+      { key: 'zepto', name: 'Zepto', color: 'bg-[#5C00A3] text-white border-purple-600' },
+      { key: 'instamart', name: 'Instamart', color: 'bg-[#FC8019] text-white border-orange-500' },
+      { key: 'bb', name: 'BB Now', color: 'bg-[#84c225] text-white border-emerald-500' },
+      { key: 'flipkart', name: 'Minutes', color: 'bg-[#2874f0] text-white border-blue-500' }
+    ];
+
+    // -------------------------------------------------------------------
+    // 2. MAIN REACT APPLICATION COMPONENT
+    // -------------------------------------------------------------------
+    function App() {
+      const [city, setCity] = useState('Bengaluru');
+      const [pincode, setPincode] = useState('560038');
+      const [searchQuery, setSearchQuery] = useState('');
+      const [selectedCategory, setSelectedCategory] = useState('all');
+      const [sortOption, setSortOption] = useState('best_deal');
+      const [isBasketOpen, setIsBasketOpen] = useState(false);
+      
+      // Default basket pre-seeded with 2 items for demonstration
+      const [basket, setBasket] = useState([
+        { ...PRODUCTS_DATA[0], qty: 1 },
+        { ...PRODUCTS_DATA[15], qty: 1 }
+      ]);
+
+      const pinNum = parseInt(pincode, 10) || 560038;
+      const isSurge = pinNum % 2 !== 0;
+      const extraMins = isSurge ? 3 : 0;
+
+      // Filter and Sort Products
+      const filteredProducts = useMemo(() => {
+        let list = PRODUCTS_DATA;
+
+        if (searchQuery.trim()) {
+          const q = searchQuery.toLowerCase().trim();
+          list = list.filter(p => 
+            p.name.toLowerCase().includes(q) || 
+            p.brand.toLowerCase().includes(q) ||
+            p.category.toLowerCase().includes(q)
+          );
+        }
+
+        if (selectedCategory !== 'all') {
+          list = list.filter(p => p.category.toLowerCase() === selectedCategory.toLowerCase());
+        }
+
+        return list.map(item => {
+          let lowest = Infinity;
+          let bestStore = 'zepto';
+          Object.entries(item.prices).forEach(([st, pr]) => {
+            if (pr < lowest) {
+              lowest = pr;
+              bestStore = st;
+            }
+          });
+
+          let fastestTime = Infinity;
+          let fastestStore = 'blinkit';
+          Object.entries(item.delivery).forEach(([st, tm]) => {
+            const trueTime = tm + extraMins;
+            if (trueTime < fastestTime) {
+              fastestTime = trueTime;
+              fastestStore = st;
+            }
+          });
+
+          const discountPercent = Math.round(((item.mrp - lowest) / item.mrp) * 100);
+          return {
+            ...item,
+            lowestPrice: lowest,
+            bestStore,
+            fastestTime,
+            fastestStore,
+            discountPercent
+          };
+        }).sort((a, b) => {
+          if (sortOption === 'best_deal') return b.discountPercent - a.discountPercent;
+          if (sortOption === 'lowest_price') return a.lowestPrice - b.lowestPrice;
+          if (sortOption === 'fastest') return a.fastestTime - b.fastestTime;
+          return 0;
+        });
+      }, [searchQuery, selectedCategory, sortOption, extraMins]);
+
+      // Smart Basket Handlers
+      const addToBasket = (product) => {
+        setBasket(prev => {
+          const idx = prev.findIndex(item => item.id === product.id);
+          if (idx > -1) {
+            const updated = [...prev];
+            updated[idx].qty += 1;
+            return updated;
+          }
+          return [...prev, { ...product, qty: 1 }];
+        });
+        setIsBasketOpen(true);
+      };
+
+      const updateQty = (id, delta) => {
+        setBasket(prev => prev.map(item => {
+          if (item.id === id) {
+            const q = item.qty + delta;
+            return q > 0 ? { ...item, qty: q } : null;
+          }
+          return item;
+        }).filter(Boolean));
+      };
+
+      const removeItem = (id) => {
+        setBasket(prev => prev.filter(item => item.id !== id));
+      };
+
+      // Cumulative Basket Calculations for all 5 Stores
+      const basketStoreTotals = useMemo(() => {
+        const totals = { blinkit: 0, zepto: 0, instamart: 0, bb: 0, flipkart: 0 };
+        basket.forEach(item => {
+          Object.keys(totals).forEach(k => {
+            totals[k] += (item.prices[k] || 0) * item.qty;
+          });
+        });
+
+        const fees = {
+          blinkit: { handling: 4, delivery: totals.blinkit > 199 ? 0 : 16 },
+          zepto: { handling: 5, delivery: totals.zepto > 199 ? 0 : 15 },
+          instamart: { handling: 6, delivery: totals.instamart > 199 ? 0 : 20 },
+          bb: { handling: 3, delivery: totals.bb > 199 ? 0 : 12 },
+          flipkart: { handling: 4, delivery: totals.flipkart > 199 ? 0 : 15 }
+        };
+
+        const surgeFee = isSurge ? 10 : 0;
+        const finalTotals = {
+          blinkit: totals.blinkit + fees.blinkit.handling + fees.blinkit.delivery + surgeFee,
+          zepto: totals.zepto + fees.zepto.handling + fees.zepto.delivery + surgeFee,
+          instamart: totals.instamart + fees.instamart.handling + fees.instamart.delivery + surgeFee,
+          bb: totals.bb + fees.bb.handling + fees.bb.delivery + surgeFee,
+          flipkart: totals.flipkart + fees.flipkart.handling + fees.flipkart.delivery + surgeFee
+        };
+
+        let lowestStore = 'zepto';
+        let lowestTotal = Infinity;
+        Object.entries(finalTotals).forEach(([k, tot]) => {
+          if (tot < lowestTotal) {
+            lowestTotal = tot;
+            lowestStore = k;
+          }
+        });
+
+        return { totals, fees, finalTotals, lowestStore, lowestTotal };
+      }, [basket, isSurge]);
+
+      // Trigger Lucide icons refresh on DOM update
+      useEffect(() => {
+        if (window.lucide) {
+          window.lucide.createIcons();
+        }
+      });
+
+      const totalItemsCount = basket.reduce((sum, item) => sum + item.qty, 0);
+
+      const storeNames = {
+        blinkit: 'Blinkit',
+        zepto: 'Zepto',
+        instamart: 'Swiggy Instamart',
+        bb: 'BigBasket BB Now',
+        flipkart: 'Flipkart Minutes'
+      };
+
+      return (
+        <div className="min-h-screen flex flex-col bg-slate-50 antialiased">
+          
+          {/* 1. Header with Pincode & City Dropdown */}
+          <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm">
+            <div className="max-w-7xl mx-auto px-4 py-3 sm:px-6 lg:px-8 flex justify-between items-center gap-4">
+              
+              <div className="flex items-center gap-3 cursor-pointer">
+                <div className="bg-emerald-600 text-white p-2.5 rounded-2xl shadow-lg shadow-emerald-500/20">
+                  <i data-lucide="trending-down" className="w-5 h-5"></i>
+                </div>
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xl font-black tracking-tight text-slate-900">
+                      BuyWise <span className="text-emerald-600">Co.</span>
+                    </span>
+                    <span className="text-[10px] font-black uppercase bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded-md">
+                      FAIR INDEX
+                    </span>
+                  </div>
+                  <p className="text-[9px] text-slate-400 font-extrabold uppercase tracking-widest hidden sm:block">
+                    5-Store Quick-Commerce Matrix
+                  </p>
+                </div>
+              </div>
+
+              {/* Location & Pincode Selector */}
+              <div className="flex items-center gap-2 bg-slate-100 p-1.5 rounded-2xl border border-slate-200">
+                <div className="flex items-center pl-2 text-emerald-600">
+                  <i data-lucide="map-pin" className="w-4 h-4"></i>
+                </div>
+
+                <div className="relative">
+                  <select
+                    value={city}
+                    onChange={(e) => {
+                      const sel = CITIES.find(c => c.name === e.target.value);
+                      setCity(e.target.value);
+                      if (sel) setPincode(sel.defaultPin);
+                    }}
+                    className="bg-transparent text-xs font-bold text-slate-800 py-1 pr-6 pl-1 outline-none cursor-pointer appearance-none"
+                  >
+                    {CITIES.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
+                  </select>
+                  <i data-lucide="chevron-down" className="w-3.5 h-3.5 text-slate-400 absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                </div>
+
+                <span className="text-slate-300">|</span>
+
+                <input
+                  type="text"
+                  value={pincode}
+                  onChange={(e) => setPincode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  placeholder="Pincode"
+                  maxLength={6}
+                  className="w-16 bg-transparent text-xs font-bold text-slate-800 py-1 px-1 outline-none text-center"
+                />
+              </div>
+
+              {/* Smart Basket Button */}
+              <button
+                onClick={() => setIsBasketOpen(true)}
+                className="relative flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-black text-xs px-4 py-2.5 rounded-2xl transition shadow-md shadow-slate-900/10"
+              >
+                <i data-lucide="shopping-bag" className="w-4 h-4"></i>
+                <span className="hidden sm:inline">Smart Basket</span>
+                <span className="w-5 h-5 rounded-full bg-amber-400 text-slate-950 font-black text-[11px] flex items-center justify-center">
+                  {totalItemsCount}
+                </span>
+              </button>
+
+            </div>
+          </header>
+
+          {/* 2. Dynamic Delivery Availability Banner */}
+          <div className={`border-b transition-colors ${
+            isSurge ? 'bg-amber-500/10 border-amber-500/20 text-amber-900' : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-950'
+          }`}>
+            <div className="max-w-7xl mx-auto px-4 py-2 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center text-xs gap-1.5 font-bold">
+              <div className="flex items-center gap-2">
+                {isSurge ? (
+                  <span className="flex items-center gap-1 text-amber-700 font-extrabold uppercase text-[10px] bg-amber-100 px-2 py-0.5 rounded-full">
+                    <i data-lucide="alert-triangle" className="w-3 h-3 text-amber-600"></i> High Demand Zone
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1 text-emerald-800 font-extrabold uppercase text-[10px] bg-emerald-100 px-2 py-0.5 rounded-full">
+                    <i data-lucide="check-circle-2" className="w-3 h-3 text-emerald-600"></i> Full Coverage
+                  </span>
+                )}
+                <span>Showing real-time stock & delivery speeds for <strong>{city} ({pincode})</strong></span>
+              </div>
+              <div className="flex items-center gap-4 text-[11px] text-slate-500 font-medium">
+                <span className="flex items-center gap-1 text-slate-700 font-bold">
+                  <i data-lucide="zap" className="w-3.5 h-3.5 fill-amber-500 text-amber-500"></i> 5 of 5 Dark Stores Online
+                </span>
+                <span className="flex items-center gap-1 text-slate-700 font-bold">
+                  <i data-lucide="clock" className="w-3.5 h-3.5 text-emerald-600"></i> Avg Delivery: {isSurge ? '11-14 mins' : '7-10 mins'}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Main Workspace */}
+          <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 flex-1 w-full space-y-7">
+            
+            {/* Hero Banner */}
+            <div className="bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 text-white p-6 sm:p-8 rounded-3xl shadow-xl space-y-2">
+              <span className="text-[10px] font-black uppercase tracking-widest bg-amber-400 text-slate-950 px-2.5 py-1 rounded-full inline-block">
+                Fair Price Transparency
+              </span>
+              <h1 className="text-2xl sm:text-4xl font-black tracking-tight leading-tight">
+                Compare Blinkit, Zepto, Swiggy Instamart, BB Now & Flipkart Minutes.
+              </h1>
+              <p className="text-xs sm:text-sm text-emerald-100 max-w-2xl font-medium leading-relaxed">
+                Scan shelf prices against un-manipulated <strong>Fair Price</strong> benchmarks. Detect hidden platform fees, surge markups, and calculate cumulative smart basket totals.
+              </p>
+            </div>
+
+            {/* 3. Search and Category Filter Section */}
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row gap-3 items-stretch">
+                <div className="relative flex-1">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
+                    <i data-lucide="search" className="w-5 h-5"></i>
+                  </div>
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search Amul milk, Aashirvaad atta, coffee, coke, maggi, oil, soap..."
+                    className="w-full pl-12 pr-10 py-3.5 bg-white border border-slate-200 rounded-2xl text-sm font-bold text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 shadow-sm"
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery('')}
+                      className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600"
+                    >
+                      <i data-lucide="x" className="w-4 h-4"></i>
+                    </button>
+                  )}
+                </div>
+
+                {/* Sort Option */}
+                <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-2xl px-4 py-2 shadow-sm text-xs font-bold text-slate-700">
+                  <i data-lucide="sliders-horizontal" className="w-4 h-4 text-emerald-600"></i>
+                  <span className="text-slate-400 font-extrabold uppercase text-[10px]">Sort:</span>
+                  <select
+                    value={sortOption}
+                    onChange={(e) => setSortOption(e.target.value)}
+                    className="bg-transparent font-bold outline-none cursor-pointer"
+                  >
+                    <option value="best_deal">Highest % Discount</option>
+                    <option value="lowest_price">Lowest Price (₹)</option>
+                    <option value="fastest">Fastest Delivery (Mins)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* 6 Category Filter Chips */}
+              <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+                {CATEGORIES.map(cat => {
+                  const isActive = selectedCategory.toLowerCase() === cat.id.toLowerCase();
+                  return (
+                    <button
+                      key={cat.id}
+                      onClick={() => setSelectedCategory(cat.id)}
+                      className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition border ${
+                        isActive
+                          ? 'bg-emerald-600 text-white border-emerald-600 shadow-md shadow-emerald-600/20'
+                          : 'bg-white text-slate-600 border-slate-200 hover:border-emerald-500'
+                      }`}
+                    >
+                      {cat.label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="flex justify-between items-center text-xs text-slate-500 font-semibold px-1">
+                <span>Showing <strong>{filteredProducts.length}</strong> grocery products</span>
+                <span className="text-[11px] text-emerald-600 font-bold flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  Verified Indian Retail Index
+                </span>
+              </div>
+            </div>
+
+            {/* 4. Platform Comparison Matrix Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {filteredProducts.map(product => {
+                const { mrp, fairPrice, fairPriceNote, lowestPrice, bestStore, fastestStore, size, unitPrice } = product;
+                const diffFromFair = lowestPrice - fairPrice;
+                const isAuthenticDiscount = lowestPrice < fairPrice - 2;
+                const isSurgeMarkedUp = lowestPrice > fairPrice + 3 || lowestPrice >= mrp;
+
+                return (
+                  <div key={product.id} className="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group">
+                    <div>
+                      {/* Product Top Info */}
+                      <div className="flex gap-4 items-start">
+                        <div className="relative w-24 h-24 rounded-2xl overflow-hidden bg-slate-100 flex-shrink-0 border border-slate-100">
+                          <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
+                          {mrp > lowestPrice && (
+                            <span className="absolute top-1.5 left-1.5 bg-rose-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded shadow-sm">
+                              {product.discountPercent}% OFF
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-[10px] font-black text-slate-700 bg-slate-100 px-2 py-0.5 rounded uppercase tracking-wider">
+                              {product.brand}
+                            </span>
+                            <span className="text-[11px] font-bold text-slate-500">{size}</span>
+                            {unitPrice && (
+                              <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">
+                                {unitPrice}
+                              </span>
+                            )}
+                          </div>
+
+                          <h3 className="font-extrabold text-slate-900 text-sm sm:text-base leading-snug line-clamp-2">
+                            {product.name}
+                          </h3>
+
+                          {/* Fair Price & Deal Integrity Engine */}
+                          <div className="mt-2.5 p-2 bg-slate-50 rounded-xl border border-slate-200 flex flex-wrap items-center justify-between gap-1.5 text-xs">
+                            <div className="flex items-center gap-2">
+                              <span className="text-[11px] font-black text-slate-700">
+                                Fair Price: <strong className="text-emerald-700">₹{fairPrice}</strong>
+                              </span>
+                              <span className="text-[11px] text-slate-400 line-through">MRP ₹{mrp}</span>
+                            </div>
+
+                            {/* Deal Integrity Badges */}
+                            {isAuthenticDiscount ? (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-black text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-md border border-emerald-300/40">
+                                <i data-lucide="check-circle" className="w-3 h-3 text-emerald-600"></i> Authentic Discount
+                              </span>
+                            ) : isSurgeMarkedUp ? (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-black text-rose-800 bg-rose-100 px-2 py-0.5 rounded-md border border-rose-300/40">
+                                <i data-lucide="alert-circle" className="w-3 h-3 text-rose-600"></i> Surge / Marked Up
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 text-[10px] font-black text-blue-800 bg-blue-100 px-2 py-0.5 rounded-md border border-blue-300/40">
+                                <i data-lucide="shield-check" className="w-3 h-3 text-blue-600"></i> Fair Market Value
+                              </span>
+                            )}
+                          </div>
+
+                          {fairPriceNote && (
+                            <p className="text-[9px] text-slate-400 mt-1 flex items-center gap-1">
+                              <i data-lucide="info" className="w-3 h-3 flex-shrink-0 text-slate-400"></i> {fairPriceNote}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* 5-Store Comparison Matrix */}
+                      <div className="mt-4 pt-4 border-t border-slate-100">
+                        <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block mb-2">
+                          Live 5-Store Price & Delivery Comparison
+                        </span>
+
+                        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                          {PLATFORMS.map(p => {
+                            const price = product.prices[p.key];
+                            const time = product.delivery[p.key] + extraMins;
+                            const inStock = product.stock[p.key] !== false;
+                            const isBest = p.key === bestStore;
+                            const isFastest = p.key === fastestStore;
+                            
+                            const deepLink = p.key === 'blinkit' ? `https://blinkit.com/s/?q=${encodeURIComponent(product.name)}&pincode=${pincode}` :
+                                             p.key === 'zepto' ? `https://www.zeptonow.com/search?query=${encodeURIComponent(product.name)}&pincode=${pincode}` :
+                                             p.key === 'instamart' ? `https://www.swiggy.com/instamart/search?query=${encodeURIComponent(product.name)}` :
+                                             p.key === 'bb' ? `https://www.bigbasket.com/ps/?q=${encodeURIComponent(product.name)}` :
+                                             `https://www.flipkart.com/search?q=${encodeURIComponent(product.name)}`;
+
+                            return (
+                              <div
+                                key={p.key}
+                                className={`p-2.5 rounded-2xl border transition flex flex-col justify-between ${
+                                  isBest 
+                                    ? 'bg-emerald-50/70 border-emerald-500 ring-2 ring-emerald-500/20 shadow-sm' 
+                                    : 'bg-slate-50 border-slate-200'
+                                }`}
+                              >
+                                <div className="flex items-center justify-between mb-1.5">
+                                  <span className={`text-[9px] font-black uppercase px-1.5 py-0.5 rounded ${p.color}`}>
+                                    {p.name}
+                                  </span>
+                                  {isBest ? (
+                                    <span className="text-[9px] font-black text-emerald-800 bg-emerald-200 px-1 rounded flex items-center gap-0.5">
+                                      <i data-lucide="tag" className="w-2.5 h-2.5"></i> Best Deal
+                                    </span>
+                                  ) : isFastest ? (
+                                    <span className="text-[9px] font-black text-amber-700 bg-amber-100 px-1 rounded flex items-center gap-0.5">
+                                      <i data-lucide="zap" className="w-2.5 h-2.5 fill-amber-500 text-amber-500"></i> Fastest
+                                    </span>
+                                  ) : null}
+                                </div>
+
+                                <div className="my-1">
+                                  <div className="text-base font-black text-slate-900">₹{price}</div>
+                                  <div className="text-[10px] text-slate-500 font-semibold">{time} mins</div>
+                                  <div className="text-[9px] mt-0.5 font-bold">
+                                    {inStock ? (
+                                      <span className="text-emerald-600">● In Stock</span>
+                                    ) : (
+                                      <span className="text-slate-400">○ Low / OOS</span>
+                                    )}
+                                  </div>
+                                </div>
+
+                                <a
+                                  href={deepLink}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="mt-2 w-full py-1 px-1.5 rounded-lg bg-white hover:bg-slate-900 hover:text-white text-slate-700 font-bold text-[10px] border border-slate-200 transition flex items-center justify-center gap-1"
+                                >
+                                  Order Now <i data-lucide="external-link" className="w-2.5 h-2.5"></i>
+                                </a>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Add to Smart Basket Action */}
+                    <div className="mt-4 pt-3 border-t border-slate-100">
+                      <button
+                        onClick={() => addToBasket(product)}
+                        className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs rounded-xl transition duration-150 flex items-center justify-center gap-1.5 shadow-sm"
+                      >
+                        <i data-lucide="plus" className="w-4 h-4"></i> Add to Smart Basket
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+          </main>
+
+          {/* 5. Smart Basket Multi-Product Optimizer Modal */}
+          {isBasketOpen && (
+            <div className="fixed inset-0 z-50 overflow-hidden bg-slate-950/70 backdrop-blur-sm flex justify-end">
+              <div className="w-full max-w-lg bg-white h-full shadow-2xl flex flex-col justify-between border-l border-slate-200">
+                
+                {/* Drawer Header */}
+                <div className="p-5 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+                  <div className="flex items-center gap-2.5">
+                    <div className="bg-emerald-600 text-white p-2 rounded-xl">
+                      <i data-lucide="shopping-bag" className="w-5 h-5"></i>
+                    </div>
+                    <div>
+                      <h3 className="text-base font-black text-slate-900">Smart Basket Optimizer</h3>
+                      <p className="text-[11px] text-slate-400 font-bold">{basket.length} items • Cumulative store checkout</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {basket.length > 0 && (
+                      <button onClick={() => setBasket([])} className="text-[11px] font-bold text-slate-400 hover:text-rose-500 px-2 py-1">
+                        Clear
+                      </button>
+                    )}
+                    <button onClick={() => setIsBasketOpen(false)} className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 bg-white border border-slate-200">
+                      <i data-lucide="x" className="w-5 h-5"></i>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Items List */}
+                <div className="flex-1 overflow-y-auto p-5 space-y-3">
+                  {basket.length === 0 ? (
+                    <div className="text-center py-16 space-y-3 text-slate-400">
+                      <i data-lucide="shopping-bag" className="w-12 h-12 mx-auto text-slate-300"></i>
+                      <p className="text-sm font-bold text-slate-700">Your basket is empty.</p>
+                      <p className="text-xs">Add products from the catalog to compare total landed checkout prices across stores.</p>
+                    </div>
+                  ) : (
+                    basket.map(item => {
+                      const minPrice = Math.min(...Object.values(item.prices));
+                      return (
+                        <div key={item.id} className="flex items-center justify-between p-3.5 bg-slate-50 border border-slate-200 rounded-2xl gap-3">
+                          <img src={item.image} alt={item.name} className="w-12 h-12 rounded-xl object-cover" />
+                          <div className="flex-1 min-w-0">
+                            <h4 className="text-xs font-extrabold text-slate-900 truncate">{item.name}</h4>
+                            <p className="text-[10px] text-slate-400 font-semibold">{item.size} • Best: ₹{minPrice}</p>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <button onClick={() => updateQty(item.id, -1)} className="w-7 h-7 rounded-lg bg-white border border-slate-200 flex items-center justify-center font-bold text-slate-700 hover:bg-rose-50 hover:text-rose-600">
+                              -
+                            </button>
+                            <span className="w-6 text-center font-black text-xs text-slate-900">{item.qty}</span>
+                            <button onClick={() => updateQty(item.id, 1)} className="w-7 h-7 rounded-lg bg-white border border-slate-200 flex items-center justify-center font-bold text-slate-700 hover:bg-emerald-50 hover:text-emerald-600">
+                              +
+                            </button>
+                            <button onClick={() => removeItem(item.id)} className="p-1.5 text-slate-400 hover:text-rose-500 ml-1">
+                              <i data-lucide="trash-2" className="w-4 h-4"></i>
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+
+                {/* Landed Store Matrix & Summary */}
+                {basket.length > 0 && (
+                  <div className="p-5 border-t border-slate-200 bg-slate-50 space-y-4">
+                    <div>
+                      <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-2">
+                        Cumulative Landed Cart Totals (Fees Included)
+                      </span>
+                      <div className="grid grid-cols-5 gap-1.5 text-center text-xs">
+                        {PLATFORMS.map(p => {
+                          const tot = basketStoreTotals.finalTotals[p.key];
+                          const isLowest = p.key === basketStoreTotals.lowestStore;
+                          return (
+                            <div key={p.key} className={`p-2 rounded-xl border transition ${
+                              isLowest ? 'bg-emerald-100 border-emerald-500 font-black ring-1 ring-emerald-500' : 'bg-white border-slate-200'
+                            }`}>
+                              <span className={`text-[8px] font-black uppercase px-1 py-0.5 rounded ${p.color}`}>
+                                {p.name}
+                              </span>
+                              <div className="text-xs font-black text-slate-900 mt-1">₹{tot}</div>
+                              <span className="text-[9px] text-slate-400 font-bold block">
+                                {basketStoreTotals.fees[p.key].delivery === 0 ? 'Free Del' : `+₹${basketStoreTotals.fees[p.key].delivery}`}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Recommendation Banner */}
+                    <div className="bg-emerald-600 text-white p-4 rounded-2xl shadow-lg shadow-emerald-600/20 space-y-1">
+                      <div className="flex items-center gap-2">
+                        <i data-lucide="check-circle-2" className="w-4 h-4 text-emerald-200"></i>
+                        <span className="text-xs font-extrabold uppercase tracking-wider text-emerald-100">
+                          Lowest Single Store Match
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-baseline">
+                        <h4 className="text-base font-black">{storeNames[basketStoreTotals.lowestStore]}</h4>
+                        <span className="text-xl font-black">₹{basketStoreTotals.lowestTotal}</span>
+                      </div>
+                      <p className="text-[10px] text-emerald-100">
+                        Includes ₹{basketStoreTotals.fees[basketStoreTotals.lowestStore].handling} platform fee + {basketStoreTotals.fees[basketStoreTotals.lowestStore].delivery === 0 ? 'FREE delivery' : `₹${basketStoreTotals.fees[basketStoreTotals.lowestStore].delivery} delivery fee`}.
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={() => alert(`🎉 Order placed via ${storeNames[basketStoreTotals.lowestStore]} for ₹${basketStoreTotals.lowestTotal}! Directing to doorstep dispatch...`)}
+                      className="w-full py-3.5 bg-slate-900 hover:bg-slate-800 text-white font-black text-sm rounded-xl transition shadow-xl shadow-slate-900/10 flex items-center justify-center gap-2"
+                    >
+                      <i data-lucide="truck" className="w-4 h-4"></i> Order with Lowest Store ({storeNames[basketStoreTotals.lowestStore]})
+                    </button>
+                  </div>
+                )}
+
+              </div>
+            </div>
+          )}
+
+          {/* Footer */}
+          <footer className="bg-slate-950 text-slate-500 py-10 text-center text-xs border-t border-slate-900 mt-auto">
+            <div className="max-w-7xl mx-auto px-4 space-y-3">
+              <p className="font-black text-slate-300 text-sm">BuyWise Co. • India Quick-Commerce Price Index</p>
+              <p className="text-slate-500 text-[11px] max-w-xl mx-auto">
+                All trademarks, logos, and product brand vectors (Blinkit, Zepto, Swiggy Instamart, BigBasket, Flipkart Minutes) belong to their respective owners. Fair Price metrics are calculated from official brand MRPs and un-surged retail distribution standards.
+              </p>
+              <p className="text-slate-600 text-[10px]">© 2026 BuyWise Co. All rights reserved.</p>
+            </div>
+          </footer>
+
+        </div>
+      );
+    }
+
+    // Render the React Application
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+
+</body>
+</html>
